@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/michelin/snowflake-grafana-datasource/pkg/data"
 	_oauth "github.com/michelin/snowflake-grafana-datasource/pkg/oauth"
@@ -22,6 +23,23 @@ import (
 var (
 	_ backend.QueryDataHandler = (*SnowflakeDatasource)(nil)
 )
+
+// parseScopesString splits a comma-separated string into a slice of strings
+func parseScopesString(scopesString string) []string {
+	if scopesString == "" {
+		return []string{}
+	}
+
+	var scopes []string
+	parts := strings.Split(scopesString, ",")
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			scopes = append(scopes, trimmed)
+		}
+	}
+	return scopes
+}
 
 type SnowflakeDatasource struct {
 	db *sql.DB
@@ -48,7 +66,7 @@ func (td *SnowflakeDatasource) QueryData(ctx context.Context, req *backend.Query
 		ClientId:      config.ClientId,
 		ClientSecret:  req.PluginContext.DataSourceInstanceSettings.DecryptedSecureJSONData["clientSecret"],
 		TokenEndpoint: config.TokenEndpoint,
-		Scopes:        config.Scopes,
+		Scopes:        parseScopesString(config.Scopes),
 	}
 
 	token, err := _oauth.GetToken(oauth, false)
@@ -73,19 +91,19 @@ func (td *SnowflakeDatasource) QueryData(ctx context.Context, req *backend.Query
 }
 
 type pluginConfig struct {
-	Account                  string   `json:"account"`
-	Username                 string   `json:"username"`
-	Role                     string   `json:"role"`
-	Warehouse                string   `json:"warehouse"`
-	Database                 string   `json:"database"`
-	Schema                   string   `json:"schema"`
-	ExtraConfig              string   `json:"extraConfig"`
-	MaxChunkDownloadWorkers  string   `json:"maxChunkDownloadWorkers"`
-	CustomJSONDecoderEnabled bool     `json:"customJSONDecoderEnabled"`
-	ClientId                 string   `json:"clientId"`
-	TokenEndpoint            string   `json:"tokenEndpoint"`
-	RedirectUrl              string   `json:"redirectUrl"`
-	Scopes                   []string `json:"scopes"`
+	Account                  string `json:"account"`
+	Username                 string `json:"username"`
+	Role                     string `json:"role"`
+	Warehouse                string `json:"warehouse"`
+	Database                 string `json:"database"`
+	Schema                   string `json:"schema"`
+	ExtraConfig              string `json:"extraConfig"`
+	MaxChunkDownloadWorkers  string `json:"maxChunkDownloadWorkers"`
+	CustomJSONDecoderEnabled bool   `json:"customJSONDecoderEnabled"`
+	ClientId                 string `json:"clientId"`
+	TokenEndpoint            string `json:"tokenEndpoint"`
+	RedirectUrl              string `json:"redirectUrl"`
+	Scopes                   string `json:"scopes"` // Now a comma-separated string
 }
 
 func getConfig(settings *backend.DataSourceInstanceSettings) (pluginConfig, error) {

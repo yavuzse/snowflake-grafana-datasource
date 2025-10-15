@@ -85,7 +85,7 @@ func createAndValidationConnectionString(req *backend.CheckHealthRequest) (strin
 		ClientId:      config.ClientId,
 		ClientSecret:  req.PluginContext.DataSourceInstanceSettings.DecryptedSecureJSONData["clientSecret"],
 		TokenEndpoint: config.TokenEndpoint,
-		Scopes:        config.Scopes,
+		Scopes:        parseScopesString(config.Scopes),
 	}
 
 	if validationResult := validateAuthFields(password, privateKey, oauth); validationResult != nil {

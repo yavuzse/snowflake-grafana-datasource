@@ -15,7 +15,6 @@ interface Props extends DataSourcePluginOptionsEditorProps<SnowflakeOptions> {}
 
 interface State {
   authMethod: string;
-  scopesInputValue: string;
 }
 
 const authOptions = [
@@ -33,17 +32,7 @@ export class ConfigEditor extends PureComponent<Props, State> {
     super(props);
     this.state = {
       authMethod: this.props.options.jsonData.authMethod ?? authOptions[0].value,
-      scopesInputValue: this.props.options.jsonData.scopes?.join(', ') ?? '',
     };
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    // Update local scopesInputValue if scopes were changed externally
-    if (prevProps.options.jsonData.scopes !== this.props.options.jsonData.scopes) {
-      this.setState({
-        scopesInputValue: this.props.options.jsonData.scopes?.join(', ') ?? '',
-      });
-    }
   }
 
   onAuthMethodChange = (value: string) => {
@@ -249,18 +238,10 @@ export class ConfigEditor extends PureComponent<Props, State> {
   };
 
   onScopesChange = (event: ChangeEvent<HTMLInputElement>) => {
-    this.setState({ scopesInputValue: event.target.value });
-  };
-
-  onScopesBlur = (event: ChangeEvent<HTMLInputElement>) => {
     const { onOptionsChange, options } = this.props;
-    const scopesArray = event.target.value
-      .split(/,\s*/) // Split by comma and optional whitespace
-      .map(scope => scope.trim())
-      .filter(scope => scope.length > 0);
     const jsonData = {
       ...options.jsonData,
-      scopes: scopesArray,
+      scopes: event.target.value,
     };
     onOptionsChange({ ...options, jsonData });
   };
@@ -396,10 +377,9 @@ export class ConfigEditor extends PureComponent<Props, State> {
                            tooltip="Comma-separated list of OAuth scopes (e.g., session:role:ACCOUNTADMIN,refresh_token)"
                            labelWidth={LABEL_WIDTH}>
                 <Input
-                    value={this.state.scopesInputValue}
+                    value={jsonData.scopes ?? ''}
                     width={INPUT_WIDTH}
                     onChange={this.onScopesChange}
-                    onBlur={this.onScopesBlur}
                     placeholder="session:role:ACCOUNTADMIN,refresh_token"
                 />
               </InlineField>

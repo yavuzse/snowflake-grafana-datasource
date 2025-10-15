@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"github.com/grafana/grafana-plugin-sdk-go/data"
 	"strings"
 	"time"
+
+	"github.com/grafana/grafana-plugin-sdk-go/data"
 )
 
 func EqualsIgnoreCase(s []string, str string) bool {
@@ -53,4 +54,21 @@ func PreviousRow(rows [][]interface{}, index int) []interface{} {
 		return rows[Max(int64(index-1), 0)]
 	}
 	return nil
+}
+
+// ParseScopesString converts a comma-separated string to a slice of strings
+func ParseScopesString(scopesStr string) []string {
+	if scopesStr == "" {
+		return []string{}
+	}
+
+	scopes := strings.Split(scopesStr, ",")
+	var result []string
+	for _, scope := range scopes {
+		scope = strings.TrimSpace(scope)
+		if scope != "" {
+			result = append(result, scope)
+		}
+	}
+	return result
 }
